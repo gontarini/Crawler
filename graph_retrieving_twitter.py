@@ -1,58 +1,94 @@
-import yaml, twitter, pprint
-import fifo_twitter,databases_twitter
-import guess_language
+import yaml, twitter
+import fifo_twitter, databases_twitter
+
 
 class BFS_retrieving:
 
+
+    '''Class implements BFS graph algorithm and its helpful method in order to collect data from twitter.
+
+       Executed correctly class methods effectively gives huge amount of data stored in specified database.
+    '''
+
+
     def __init__(self):
-        '''Initialise database and loading a config file,
-        establish authenticated connection'''
+        '''Loads configuration file, initialise databases to store output data and queue of channel's id's
+       and establish authenticated connection by given parameters in configuration file.
+
+    '''
 
         config = self.load_config_file()
 
-        self.fifo = fifo_twitter.Fifo_queue(config)  #queue of nodes left to check
+        self.fifo = fifo_twitter.Fifo_queue(config)  # queue of nodes left to check
         self.manage_data = databases_twitter.data(config)
         self.authentication(config)
     pass
+
 
     def load_config_file(self):
         try:
             stream = open('config/config_twitter.yml', 'r')
         except:
             try:
-                stream = open('config/config_twitter.yaml','r')
+                stream = open('config/config_twitter.yaml', 'r')
             except IOError:
                 print IOError
 
         return yaml.load(stream)
     pass
 
+
     def authentication(self, config):
+        '''Does process of future request authentication
+
+        Args:
+            config (dict): configuration file loaded
+
+        '''
         try:
             self.api = twitter.Api(consumer_key=config['Authentication']['consumer_key'],
-                              consumer_secret=config['Authentication']['consumer_secret'],
-                              access_token_key=config['Authentication']['access_token_key'],
-                              access_token_secret=config['Authentication']['access_token_secret'],
-                              sleep_on_rate_limit=True)
+                               consumer_secret=config['Authentication']['consumer_secret'],
+                               access_token_key=config['Authentication']['access_token_key'],
+                               access_token_secret=config['Authentication']['access_token_secret'],
+                               sleep_on_rate_limit=True)
         except twitter.TwitterError:
             print twitter.TwitterError
     pass
 
-    def get_followers(self, id, cursor):
-        '''retrieve 200 followers with their data and next_cursor parameter,
-        :return value is a tuple where index 0 indicates next cursor, index 1 previous cursor, index 2 list of 200 followers objects'''
 
-        self.followers = self.api.GetFriendsPaged(user_id=id,cursor=cursor)
+    def get_followers(self, id, cursor):
+        '''Retrieves 200 followers with their data and next_cursor parameter.
+
+        Args:
+            id (int): specific id for the account
+            cursor (int): starting point to retrieve on
+        Returns:
+            :type tuple where index 0 indicates next cursor, index 1 previous cursor, index 2 list of 200 followers objects
+    '''
+
+        connection = True
+        while (connection):
+            try:
+                self.followers = self.api.GetFriendsPaged(user_id=id, cursor=cursor)
+                connection = False
+            except OSError:
+                connection = True
+
         return self.followers
     pass
 
+
     def get_user_lookup(self, follower):
-        '''retrieve useful data about each user'''
+        '''Retrieve useful data about each user
+
+        Args:
+            follower: list of follower data
+        '''
 
         self.user = follower.AsDict()
 
         if 'followers_count' in self.user.keys():
-            self.followers_count = self.user["followers_count"] ##obserwujacy
+            self.followers_count = self.user["followers_count"]  ##obserwujacy
         else:
             self.followers_count = None
 
@@ -78,8 +114,13 @@ class BFS_retrieving:
             self.expanded_url = None
     pass
 
+
     def check_conditions(self):
-        '''check if given user perform demanded conditions'''
+        '''Check if given user perform demanded conditions
+
+        Returns:
+            bool true if conditions performed, false otherwise
+        '''
 
         if self.verified is True:
             return True
@@ -89,10 +130,13 @@ class BFS_retrieving:
             return False
     pass
 
-    def retrieve(self, id, cursor = None):
-        '''In twitter case retrieving is based on id's of particular page which is performing certain condition.
-            In order to retrieve all pages from portal it is used BFS algorithm,
-            cursor tells if the previous retrieving was stopped and handled that events'''
+
+    def retrieve(self, id):
+        '''In twitter case retrieving is based on id's of particular account which is performing certain condition.
+
+        Args:
+            id(string): specific identifier for each account
+        '''
         next_cursor = -1
         while next_cursor is not 0:
             try:
@@ -117,30 +161,16 @@ class BFS_retrieving:
                 print twitter.TwitterError
     pass
 
-    def language_check(self, name, about=None, description=None):
-        '''Guessing language of each page based on two available parameters
-        such as about and description pulled from json file'''
-
-        if about and description is not None:
-            text = about + " " + description
-        else:
-            if description is not None:
-                text = description
-            else:
-                if about is not None:
-                    text = about
-                else:
-                    text = name
-
-        if len(text) >= 2:
-            lang = guess_language.guessLanguage(text)
-        else:
-            lang = None
-        return lang
-
-
 
 def run():
+    '''Basic function which do steps to retrieve all of wanted data from twitter.
+       It is looping until fifo queue is empty.
+
+       There are to options to start process:
+       1. Start from verified_pages account gathers all verified accounts on twitter (id of that account)
+       2. Start from previously stopped node (account id)
+
+    '''
     next_id = 0
     if b.fifo.is_empty():
         while b.fifo.is_empty():  ##exploring graph
@@ -151,7 +181,7 @@ def run():
                 b.retrieve(next_id)
                 print "current id", next_id
     else:
-        id_verified_pages = '63796828' #verified page twitter
+        id_verified_pages = '63796828'  # verified page twitter
         b.retrieve(id_verified_pages)
 
         while b.fifo.is_empty():  ##exploring graph
@@ -161,6 +191,8 @@ def run():
                 b.fifo.remove(next_id)
                 b.retrieve(next_id)
                 print "current id", next_id
+
+
 pass
 
 if __name__ == '__main__':

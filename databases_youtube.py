@@ -1,7 +1,15 @@
 import datetime, MySQLdb, emoji
 
 class data:
+    '''
+    Class implements database management. Provide method to create database, insert an object into it,
+    check if it is currently empty, check if item is inside database.
+    '''
     def __init__(self, configuration):
+        ''' Establishes database connection from given configuration file
+
+        :param configuration: configuration file loaded from external source
+        '''
         self.connection = MySQLdb.connect(host=str(configuration['database']['host']),
                                           user=str(configuration['database']['user']),
                                           passwd=str(configuration['database']['password']),
@@ -15,23 +23,26 @@ class data:
         self.create_pages()
     pass
 
-    def check_queue(self):
-        self.cursor.execute("Select * FROM queue LIMIT 1")
-        self.is_queue_empty = self.cursor.fetchone()
-
-        return self.is_queue_empty
-
 
     def create_pages(self):
+        '''
+        Creates particular table to store data from portal.
+        '''
         self.cursor.execute('''create table if not exists youtube_pages(title text, id text, etag text, description text, customUrl text,
                 publishedAt text, defaultLanguage text, country text, contentDetails text, viewCount text,
                 commentCount text, subscriberCount text, videoCount text, keywords text, defaultTab text, analyticsAccountId text,
                 featuredChannelsTitle text, time_ text)''')
+        self.cursor.execute("ALTER TABLE youtube_pages CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
         self.connection.commit()
     pass
 
     def check_item(self, id):
+        '''
+        Checks if given item is already in database.
+        :param id: specific identifier of object
+        :return: such object if it is in databse, None otherwise.
+        '''
         self.cursor.execute("Select * from youtube_pages where id = %s", (id, ))
         check = self.cursor.fetchone()
         return check
@@ -39,6 +50,13 @@ class data:
 
 
     def insert_into(self, params):
+        '''
+        Retrieves particular parameters from dictionary loaded from json file, add them to the list,
+        encode if necessery, make a query to database and insert into.
+
+        :param params: dict of parameters retrieved from json file
+
+        '''
         import json
 
         list_to_insert =[]

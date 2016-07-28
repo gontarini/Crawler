@@ -15,7 +15,7 @@ class Fifo_queue:
 
 
         self.cursor = self.connection.cursor()
-        self.cursor.execute("drop table if exists twitter_queue")
+        # self.cursor.execute("drop table if exists twitter_queue")
         self.cursor.execute("create table if not exists twitter_queue(id text, starting_cursor text)")
     pass
 
