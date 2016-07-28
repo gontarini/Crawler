@@ -10,5 +10,5 @@
 <h3> To run application it is neccessery specifing arguments. There are 2 examples of executing application below:</h3>
 <h3> python run.py facebook  - this command will only start process for facebook (if other social media is wanted just switch facebook via different name). </h3>
 <h3> python run.py facebook twitter youtube - all of social media are exploring</h3>
-<h3> Algorithms are explained correctly in included folder UML</h3>
+<h6> Algorithms are explained correctly in included folder UML</h6>
 
