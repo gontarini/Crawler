@@ -1,7 +1,7 @@
 <h1> CRAWLER APPLICATION </h1>
 <h4> Application aim is to collect all interested data from each social media like: Facebook, Twitter and Youtube. </h2>
 <h3> Facebook:</h3>
-<h6> The process collect every each of existing page. The process is started from sotrender liked pages and then exploring every single page liked and their liked pages and so on, and so on. </h6>
+<h6> The process collect every each of existing page. It is started from sotrender liked pages and then exploring every single page liked and their liked pages and so on, and so on. </h6>
 <h3> Youtube:</h3>
 <h6> Application collect every existed channel. Whole algorithm explore more and more on base of featured channnels urls paramater, which indicates next channels. Rest of that looks the same as in case of facebook. </h6>
 <h3> Twitter:</h3>
