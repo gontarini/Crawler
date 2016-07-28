@@ -1,0 +1,11 @@
+Authentication:
+ consumer_key: 'aZrA7rLnrrs5K8PZ1waGKbVZF'
+ consumer_secret: 'NcSheRDcpRenkBWkLGyVkT7mfqiTgikXPrKJ5Hbpicm4XEQt3t'
+ access_token_key: '1467720150-SQm1eiCd0YvJP6W2tzr6knlpALMSLXzhmdk0miT'
+ access_token_secret: 'ZirFzFfwb6pzLmEO3zsmJ5ncZjtmKlHxnqcWe2rRuSCDm'
+database:
+ host: 'hostname'
+ user: 'username'
+ password: 'password'
+ db: 'databasename'
+

@@ -1,0 +1,8 @@
+access_token: 148079808929420|YHwioCVoewfMMMcbHTQ9tQwAgFw
+url: 'https://graph.facebook.com/v2.4/%s/likes?fields=id,name,about,description,link,talking_about_count,phone,website,username,products,name_with_location_descriptor,mission,location,impressum,hours,general_info,founded,fan_count,display_subtext,contact_address,company_overview,category&access_token=%s'
+database:
+ host: 'hostname'
+ user: 'username'
+ password: 'password'
+ db: 'databasename'
+    

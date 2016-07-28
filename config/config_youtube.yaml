@@ -1,0 +1,8 @@
+key: "AIzaSyAtjGQLR0fYEAl-Ms_qqkaO2OJIVqhttio"
+url: "https://www.googleapis.com/youtube/v3/channels?part=brandingSettings%%2Csnippet%%2Cstatistics&id=%s&maxResults=50&key=%s"
+database:
+ host: 'host name'
+ user: 'user name'
+ password: 'password'
+ db: 'database name'
+    
