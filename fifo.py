@@ -2,7 +2,8 @@ import MySQLdb
 
 class Fifo_queue:
     '''Class which constructs fifo queue based on MySQLdB and
-    give methods to operate on it like: insert, remove, check if it is empty and get an element'''
+    give methods to operate on it like: insert, remove, check if it is empty and get an element
+    '''
 
     def __init__(self, configuration, channel, init = None):
         ''' Establishes database connection from given configuration file
@@ -23,30 +24,17 @@ class Fifo_queue:
         self.channel = channel + "_queue"
         self.cursor = self.connection.cursor()
 
-        table_create = "create table if not exists %s(id text)"%self.channel
+        table_create = "create table if not exists %s(id text, visited TINYINT(1))"%self.channel
         drop_table = "drop table if exists %s"%self.channel
         if init is not None:
             self.cursor.execute(drop_table)
             self.cursor.execute(table_create)
         else:
-            if self.check_if_table_exists() is not None:
-                pass
-            else:
-                print "Have to build table, cause it doesn't exist"
+            self.cursor.execute("SHOW TABLES like \"{}\"".format(self.channel))
+            result = self.cursor.fetchall()
+            if len(result) is 0:
+                print "Have to create a table cause it doesn't exists!"
                 self.cursor.execute(table_create)
-    pass
-
-    def check_if_table_exists(self):
-        '''Checks if table about given table name exists.
-        :return: true if it exists, otherwise nothing.
-        '''
-        self.cursor.execute("""
-            SELECT COUNT(*)
-            FROM information_schema.tables
-            WHERE table_name = '{0}'
-            """.format(self.channel.replace('\'', '\'\'')))
-        if self.cursor.fetchone()[0] == 1:
-            return True
     pass
 
     def put(self, id):
@@ -55,20 +43,28 @@ class Fifo_queue:
         :param id: specific identifier of node
 
         '''
-        insert_into = "INSERT INTO {} (id) VALUES(\"{}\")".format(str(self.channel), str(id))
+        insert_into = "INSERT INTO {} VALUES(\"{}\", {})".format(str(self.channel),str(id),0)
         self.cursor.execute(insert_into)
         self.connection.commit()
     pass
 
     def get(self):
-        '''Selects first element from queue.
+        '''Selects first 100 element from queue.
 
-        :return: first parameter from queue
+        :return: list of max 100 parameters to create internal queue
         '''
-        select_from = "SELECT * FROM %s LIMIT 1" % self.channel
+        select_from = "SELECT * FROM %s WHERE visited=0 LIMIT 100" % self.channel
         self.cursor.execute(select_from)
-        self.id_from_queue = self.cursor.fetchone()
+        self.id_from_queue = self.cursor.fetchall()
+        self.connection.commit()
+        self.update()
         return self.id_from_queue
+    pass
+
+    def update(self):
+        update = "UPDATE {} SET visited=1 WHERE visited=0 LIMIT 100".format(self.channel)
+        self.cursor.execute(update)
+        self.connection.commit()
     pass
 
     def remove(self,id):

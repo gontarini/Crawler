@@ -27,13 +27,11 @@ class data:
         if init is not None:
             self.create_pages()
         else:
-            if self.check_if_table_exists() is not None:
-                pass
-            else:
-                print "Have to build table, cause it doesn't exist"
+            self.cursor.execute("SHOW TABLES like \"{}\"".format(self.channel))
+            result = self.cursor.fetchall()
+            if len(result) is 0:
+                print "Have to create a table cause it doesn't exists!"
                 self.create_pages()
-
-
     pass
 
     def check_if_table_exists(self):
@@ -44,7 +42,7 @@ class data:
             SELECT COUNT(*)
             FROM information_schema.tables
             WHERE table_name = '{0}'
-            """.format(self.channel.replace('\'', '\'\'')))
+            """.format(self.channel))
         if self.cursor.fetchone()[0] == 1:
             return True
     pass

@@ -14,7 +14,7 @@ Example:
 '''
 
 import urllib, json, yaml, twitter
-import fifo,sys
+import fifo,sys, Queue
 import guess_language, databases
 
 
@@ -365,18 +365,27 @@ def run():
     else:
         b = BFS_retrieving(sys.argv[1])
     next_id = 0
+    internal_queue = Queue.Queue()
+
     if b.fifo.is_empty():
         while b.fifo.is_empty():  ##exploring graph
-            last_id = next_id
-            next_id = b.fifo.get()[0]
-            if next_id is not last_id:
-                b.fifo.remove(next_id)
-                if b.channel == "twitter":
-                    b.retrieve(next_id)
-                else:
-                    b.get_json(b.get_url(id=next_id))
-                    b.retrieve()
-                print "current id", next_id
+            tuple_id = b.fifo.get()
+
+            for id in tuple_id:
+                internal_queue.put(id[0])
+
+            while internal_queue.empty() is not True:
+                last_id = next_id
+                next_id = internal_queue.get()
+
+                if next_id is not last_id:
+                    b.fifo.remove(next_id)
+                    if b.channel == "twitter":
+                        b.retrieve(next_id)
+                    else:
+                        b.get_json(b.get_url(id=next_id))
+                        b.retrieve()
+                    print "current id", next_id
     else:
         if b.channel == "twitter":
             id_verified_pages = '63796828'  # verified page twitter
@@ -390,16 +399,23 @@ def run():
             b.retrieve()
 
         while b.fifo.is_empty():  ##exploring graph
-            last_id = next_id
-            next_id = b.fifo.get()[0]
-            if next_id is not last_id:
-                b.fifo.remove(next_id)
-                if b.channel == "twitter":
-                    b.retrieve(next_id)
-                else:
-                    b.get_json(b.get_url(id=next_id))
-                    b.retrieve()
-                print "current id", next_id
+            tuple_id = b.fifo.get()
+
+            for id in tuple_id:
+                internal_queue.put(id[0])
+
+            while internal_queue.empty() is not True:
+                last_id = next_id
+                next_id = internal_queue.get()
+
+                if next_id is not last_id:
+                    b.fifo.remove(next_id)
+                    if b.channel == "twitter":
+                        b.retrieve(next_id)
+                    else:
+                        b.get_json(b.get_url(id=next_id))
+                        b.retrieve()
+                    print "current id", next_id
         pass
 
     b.fifo.close()
