@@ -2,10 +2,10 @@ facebook:
  access_token: 148079808929420|YHwioCVoewfMMMcbHTQ9tQwAgFw
  url: 'https://graph.facebook.com/v2.4/%s/likes?fields=id,name,about,description,link,talking_about_count,phone,website,username,products,name_with_location_descriptor,mission,location,impressum,hours,general_info,founded,fan_count,display_subtext,contact_address,company_overview,category&access_token=%s'
  database:
-  host: 'localhost'
-  user: 'root'
-  password: 'garer123'
-  db: 'crawler'
+  host: 'hostname'
+  user: 'username'
+  password: 'password'
+  db: 'database name'
 twitter:
  Authentication:
   consumer_key: 'aZrA7rLnrrs5K8PZ1waGKbVZF'
@@ -13,17 +13,17 @@ twitter:
   access_token_key: '1467720150-SQm1eiCd0YvJP6W2tzr6knlpALMSLXzhmdk0miT'
   access_token_secret: 'ZirFzFfwb6pzLmEO3zsmJ5ncZjtmKlHxnqcWe2rRuSCDm'
  database:
-  host: 'localhost'
-  user: 'root'
-  password: 'garer123'
-  db: 'crawler'
+  host: 'hostname'
+  user: 'username'
+  password: 'password'
+  db: 'database name'
 youtube:
  key: "AIzaSyAtjGQLR0fYEAl-Ms_qqkaO2OJIVqhttio"
  url: "https://www.googleapis.com/youtube/v3/channels?part=brandingSettings%%2Csnippet%%2Cstatistics&id=%s&maxResults=50&key=%s"
  database:
-  host: 'localhost'
-  user: 'root'
-  password: 'garer123'
-  db: 'crawler'
+  host: 'hostname'
+  user: 'username'
+  password: 'password'
+  db: 'databasename'
     
   
