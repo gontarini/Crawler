@@ -266,6 +266,7 @@ class BFS_retrieving:
         items = self.json['items']
 
         for item in items:
+
             check = self.manage_data.check_item(item['id'])
             if check is not None:
                 print "I've been here"
@@ -297,7 +298,7 @@ class BFS_retrieving:
                         print "I've been here"
                     else:
                         if self.check_conditions():
-                            print "Conditions performed, user added to database"
+                            # print "Conditions performed, user added to database"
                             self.fifo.put(self.id)
                             self.manage_data.insert_into(self.user)
                         else:

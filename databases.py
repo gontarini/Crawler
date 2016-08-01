@@ -24,11 +24,16 @@ class data:
 
         self.cursor = self.connection.cursor()
 
+        self.cursor.execute('SET NAMES utf8mb4')
+        self.cursor.execute("SET CHARACTER SET utf8mb4")
+        self.cursor.execute("SET character_set_connection=utf8mb4")
+
         if init is not None:
             self.create_pages()
         else:
             self.cursor.execute("SHOW TABLES like \"{}\"".format(self.channel))
             result = self.cursor.fetchall()
+            self.connection.commit()
             if len(result) is 0:
                 print "Have to create a table cause it doesn't exists!"
                 self.create_pages()
@@ -78,6 +83,7 @@ class data:
                            create_at longtext, favourites_count longtext, lang longtext,
                            statuses_count longtext, time_ text)''')
             self.cursor.execute("ALTER TABLE twitter_pages CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+
         self.connection.commit()
     pass
 
@@ -140,7 +146,7 @@ class data:
 
         element = element.replace("\"", " ")
         element = element.replace("\\", " ")
-        return element.encode("utf-8", "ignore")
+        return element.encode("utf-8")
     pass
 
     def make_query(self, list, db_name):
@@ -249,6 +255,7 @@ class data:
         time = str(datetime.datetime.now())
         list_to_insert.append(time)
 
+        print "time {} {}".format(time, params['id'])
         return list_to_insert
     pass
 
@@ -377,6 +384,8 @@ class data:
 
         time = str(datetime.datetime.now())
         list_to_insert.append(time)
+
+        print "time {} {}".format(time, params['id'])
         return list_to_insert
     pass
 
@@ -458,5 +467,8 @@ class data:
 
         time = str(datetime.datetime.now())
         list_to_insert.append(time)
+
+        print "time {} {}".format(time,params['id'])
+
         return list_to_insert
     pass
