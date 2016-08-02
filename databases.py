@@ -140,7 +140,7 @@ class data:
         else:
             raise Exception
 
-        self.connection_solr['face_pages'].add(list_to_insert)
+        # self.connection_solr['face_pages'].add(list_to_insert)
         self.connection.commit()
     pass
 
