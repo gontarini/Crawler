@@ -1,4 +1,4 @@
-import datetime, MySQLdb, emoji
+import datetime, MySQLdb, emoji, solrcloudpy
 
 class data:
     '''
@@ -19,6 +19,9 @@ class data:
                                           use_unicode=True,
                                           charset="utf8"
                                           )
+
+        # self.connection_solr = solrcloudpy.SolrConnection("localhost:8983", version="6.1.0")
+        # print self.connection_solr.list()
 
         self.channel = channel + "_pages"
 
@@ -126,14 +129,18 @@ class data:
                 pass
 
         if self.channel == 'youtube_pages':
-            self.cursor.execute(self.make_query(list_to_insert, 'youtube_pages'))
+            query = self.make_query(list_to_insert, 'youtube_pages')
+            self.cursor.execute(query)
         elif self.channel == 'facebook_pages':
-            self.cursor.execute(self.make_query(list_to_insert, 'facebook_pages'))
+            query = self.make_query(list_to_insert, 'facebook_pages')
+            self.cursor.execute(query)
         elif self.channel == 'twitter_pages':
-            self.cursor.execute(self.make_query(list_to_insert, 'twitter_pages'))
+            query = self.make_query(list_to_insert, 'twitter_pages')
+            self.cursor.execute(query)
         else:
             raise Exception
 
+        self.connection_solr['face_pages'].add(list_to_insert)
         self.connection.commit()
     pass
 

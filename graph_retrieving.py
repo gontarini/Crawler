@@ -7,7 +7,9 @@ name called 'init'.
 
 Args:
     - facebook, twitter, youtube
+    - unnique identicator for running instance
     - init
+
 Example:
     $ python graph_retrieving.py facebook (without building new database)
     $ python graph_retrieving.py facebook init (with building new one)
@@ -24,11 +26,12 @@ class BFS_retrieving:
        Executed correctly class methods effectively gives huge amount of data stored in specified database.
     '''
 
-    def __init__(self, channel, init=None):
+    def __init__(self, channel, identifier, init=None):
         '''Loads configuration file, initialise databases to store output data and queue of page's id's.
 
         :param channel: specified channel in command line arguments
         :param init: by default set to None. Parameter tells if database have to be build from scratch.
+        :param identifier: current process name
         '''
 
         config = self.load_config_file()
@@ -37,10 +40,10 @@ class BFS_retrieving:
 
         if init is None:
             self.manage_data = databases.data(config, self.channel)
-            self.fifo = fifo.Fifo_queue(config, self.channel)
+            self.fifo = fifo.Fifo_queue(config, self.channel, identifier)
         else:
             self.manage_data = databases.data(config, self.channel, init)
-            self.fifo = fifo.Fifo_queue(config, self.channel, init)
+            self.fifo = fifo.Fifo_queue(config, self.channel, identifier,  init)
 
         if channel == 'facebook':
             self.set_access_token(config[channel]['access_token'])
@@ -363,9 +366,9 @@ def run():
 
     '''
     if sys.argv.__contains__('init'):
-        b = BFS_retrieving(sys.argv[1], 'init')
+        b = BFS_retrieving(sys.argv[1], sys.argv[2], 'init')
     else:
-        b = BFS_retrieving(sys.argv[1])
+        b = BFS_retrieving(sys.argv[1], sys.argv[2])
     next_id = 0
     internal_queue = Queue.Queue()
 

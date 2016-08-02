@@ -5,12 +5,13 @@ class Fifo_queue:
     give methods to operate on it like: insert, remove, check if it is empty and get an element
     '''
 
-    def __init__(self, configuration, channel, init = None):
+    def __init__(self, configuration, channel, identifier, init = None):
         ''' Establishes database connection from given configuration file
 
         :param configuration: configuration file loaded from external source
         :param social_media(string): string indicates queue for certain social media
         :param init: by default it is set to None. Indicates if user want to construct fifo from scratch or no.
+        :param identifier: current process name
         '''
 
         self.connection = MySQLdb.connect(host=str(configuration[channel]['database']['host']),
@@ -20,11 +21,11 @@ class Fifo_queue:
                                           use_unicode = True,
                                           charset = "utf8"
                                           )
-
+        self.identifier = str(identifier)
         self.channel = channel + "_queue"
         self.cursor = self.connection.cursor()
 
-        table_create = "create table if not exists %s(id text, visited TINYINT(1))"%self.channel
+        table_create = "create table if not exists %s(id text, visited text)"%self.channel
         drop_table = "drop table if exists %s"%self.channel
         if init is not None:
             self.cursor.execute(drop_table)
@@ -53,16 +54,23 @@ class Fifo_queue:
 
         :return: list of max 100 parameters to create internal queue
         '''
-        select_from = "SELECT * FROM %s WHERE visited=0 LIMIT 100" % self.channel
+        select_from = """SELECT * FROM {} WHERE visited="{}" LIMIT 100""".format(self.channel, self.identifier)
         self.cursor.execute(select_from)
         self.id_from_queue = self.cursor.fetchall()
-        self.connection.commit()
-        self.update()
+
+        if len(self.id_from_queue) is not 0:
+            self.connection.commit()
+            self.update()
+        else:
+            self.update()
+            self.cursor.execute(select_from)
+            self.id_from_queue = self.cursor.fetchall()
+
         return self.id_from_queue
     pass
 
     def update(self):
-        update = "UPDATE {} SET visited=1 WHERE visited=0 LIMIT 100".format(self.channel)
+        update = """UPDATE {} SET visited="{}" WHERE visited=0 LIMIT 100""".format(self.channel, self.identifier)
         self.cursor.execute(update)
         self.connection.commit()
     pass
