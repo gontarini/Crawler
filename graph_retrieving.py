@@ -156,6 +156,7 @@ class BFS_retrieving:
                 print url
                 return url
             else:
+                self.id = id
                 url = self.url % (str(id), self.access_token)
                 url = str(url)
                 print url
@@ -184,7 +185,7 @@ class BFS_retrieving:
 
         if self.json.get('error'):
             print 'Probably your access token is invalid, trying one more time'
-            self.get_json(url)
+            self.get_json(self.get_url(self.id))
     pass
 
     def check_conditions(self):
