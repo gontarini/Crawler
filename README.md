@@ -8,8 +8,9 @@
 <h6> Application start its process from the given verified base by twitter itselfs and collects accounts seems to be companies or worth collected one (different case is for instance sports star, singer etc). To be qualified for datebase it must be performed certain conditions</h6>
 <h3> Executing:</h3>
 <h5> To run application it is neccessery specifing arguments. There are examples of executing application below:</h3>
-<h6> python run.py facebook  - this command will start process for facebook </h6>
-<h6> python run.py facebook init - this command will start process for facebook and also construct database from scratch</h3>
+<h6> $ python graph_retrieving.py facebook (without building new database)</h6>
+<h6> $ python graph_retrieving.py facebook init (with building new one) - this command will start process for facebook and also construct database from scratch </h6>
+<h6> You can change variable facebook to twitter or youtube </h6>
 <h6> Algorithms are explained correctly in included folder UML.</h6>
 <h2> REMEMBER TO EDIT CONFIGURATION FILE BEFORE EXECUTING!</h2>
 
