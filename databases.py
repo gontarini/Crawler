@@ -44,7 +44,7 @@ class data:
             self.cursor.execute('''create table if not exists youtube_pages(title text, id VARCHAR(50), etag text, description text, customUrl text,
                     publishedAt text, defaultLanguage text, country text, contentDetails text, viewCount text,
                     commentCount text, subscriberCount text, videoCount text, keywords text, defaultTab text, trackingAnalyticsAccountId text,
-                    featuredChannelsTitle text, time_ text, PRIMARY KEY(id))''')
+                    featuredChannelsTitle text, crawler_createdAt text, PRIMARY KEY(id))''')
             self.cursor.execute("ALTER TABLE youtube_pages CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
         elif self.channel == 'facebook_pages':
 
@@ -53,7 +53,7 @@ class data:
                              username longtext, products longtext, name_with_location_descriptor longtext,
                              mission longtext, location longtext, impressum longtext, hours longtext, general_info longtext,
                              founded longtext, fan_count longtext, display_subtext longtext, contact_address longtext,
-                             company_overview longtext,category longtext, time_ text, PRIMARY KEY(id))''')
+                             company_overview longtext,category longtext, crawler_createdAt text, PRIMARY KEY(id))''')
             self.cursor.execute("ALTER TABLE facebook_pages CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
         elif self.channel == 'twitter_pages':
 
@@ -61,7 +61,7 @@ class data:
                              id VARCHAR(50), verified text, description longtext, page_url longtext, location longtext, followers_count longtext,
                               friends_count longtext, listed_count longtext,
                                create_at longtext, favourites_count longtext, lang longtext,
-                               statuses_count longtext, time_ text, PRIMARY KEY(id))''')
+                               statuses_count longtext, crawler_createdAt text, PRIMARY KEY(id))''')
             self.cursor.execute("ALTER TABLE twitter_pages CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
 
@@ -101,27 +101,27 @@ class data:
         if self.channel == 'youtube_pages':
             query = """INSERT INTO youtube_pages (title, id, etag, description, customUrl, publishedAt, defaultLanguage,
             country, contentDetails, viewCount, commentCount, subscriberCount,videoCount, keywords, defaultTab, trackingAnalyticsAccountId,
-             featuredChannelsTitle, time_) VALUES( %(title)s, %(id)s, %(etag)s, %(description)s,
+             featuredChannelsTitle, crawler_createdAt) VALUES( %(title)s, %(id)s, %(etag)s, %(description)s,
              %(customUrl)s, %(publishedAt)s, %(defaultLanguage)s, %(country)s, %(contentDetails)s, %(viewCount)s,
              %(commentCount)s, %(subscriberCount)s, %(videoCount)s, %(keywords)s, %(defaultTab)s, %(trackingAnalyticsAccountId)s,
-             %(featuredChannelsTitle)s, %(time_)s )"""
+             %(featuredChannelsTitle)s, %(crawler_createdAt)s )"""
             self.cursor.execute(query, diction_to_insert)
         elif self.channel == 'facebook_pages':
             query = """INSERT INTO facebook_pages (page_name, id, about, description, lang, link, talking_about_count,
                 phone, website, username, products, name_with_location_descriptor, mission, location, impressum,
-                hours, general_info, founded, fan_count, display_subtext, contact_address, company_overview, category, time_)
+                hours, general_info, founded, fan_count, display_subtext, contact_address, company_overview, category, crawler_createdAt)
                  VALUES( %(page_name)s, %(id)s, %(about)s, %(description)s,
                  %(lang)s, %(link)s, %(talking_about_count)s, %(phone)s, %(website)s, %(username)s,
                  %(products)s, %(name_with_location_descriptor)s, %(mission)s, %(location)s, %(impressum)s, %(hours)s,
                  %(general_info)s, %(founded)s, %(fan_count)s, %(display_subtext)s, %(contact_address)s, %(company_overview)s,
-                  %(category)s, %(time_)s )"""
+                  %(category)s, %(crawler_createdAt)s )"""
             self.cursor.execute(query, diction_to_insert)
         elif self.channel == 'twitter_pages':
             query = """INSERT INTO twitter_pages (page_name, screen_name, id, verified, description, page_url, location, followers_count, friends_count,
-            listed_count, create_at, favourites_count, lang, statuses_count, time_)
+            listed_count, create_at, favourites_count, lang, statuses_count, crawler_createdAt)
                  VALUES( %(page_name)s, %(screen_name)s, %(id)s, %(verified)s, %(description)s,
                  %(page_url)s, %(location)s, %(followers_count)s, %(friends_count)s, %(listed_count)s, %(create_at)s,
-                 %(favourites_count)s, %(lang)s, %(statuses_count)s, %(time_)s )"""
+                 %(favourites_count)s, %(lang)s, %(statuses_count)s, %(crawler_createdAt)s )"""
             self.cursor.execute(query, diction_to_insert)
         else:
             raise Exception
@@ -231,7 +231,7 @@ class data:
             diction_to_insert['featuredChannelsTitle'] = ""
 
         time = str(datetime.datetime.now())
-        diction_to_insert['time_']=time
+        diction_to_insert['crawler_createdAt']=time
 
         print "time {} {}".format(time, params['id'])
         return diction_to_insert
@@ -360,7 +360,7 @@ class data:
             diction_to_insert['category'] = ""
 
         time = str(datetime.datetime.now())
-        diction_to_insert['time_'] = time
+        diction_to_insert['crawler_createdAt'] = time
 
         print "time {} {}".format(time, params['id'])
         return diction_to_insert
@@ -444,7 +444,7 @@ class data:
             diction_to_insert['statuses_count'] = ""
 
         time = str(datetime.datetime.now())
-        diction_to_insert['time_'] = time
+        diction_to_insert['crawler_createdAt'] = time
 
         print "time {} {}".format(time,params['id'])
 
