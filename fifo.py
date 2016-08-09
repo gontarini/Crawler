@@ -1,5 +1,3 @@
-from webbrowser import MacOSX
-
 import MySQLdb
 
 class Fifo_queue:
