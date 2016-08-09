@@ -1,4 +1,4 @@
-import datetime, MySQLdb, emoji, solrcloudpy
+import datetime, MySQLdb, emoji, solrcloudpy, solr
 
 class data:
     '''
@@ -21,7 +21,6 @@ class data:
                                           )
 
         # self.connection_solr = solrcloudpy.SolrConnection("localhost:8983", version="6.1.0")
-        # print self.connection_solr.list()
 
         self.channel = channel + "_pages"
 
@@ -33,61 +32,41 @@ class data:
 
         if init is not None:
             self.create_pages()
-        else:
-            self.cursor.execute("SHOW TABLES like \"{}\"".format(self.channel))
-            result = self.cursor.fetchall()
-            self.connection.commit()
-            if len(result) is 0:
-                print "Have to create a table cause it doesn't exists!"
-                self.create_pages()
-    pass
-
-    def check_if_table_exists(self):
-        '''Checks if table about given table name exists.
-        :return: true if it exists, otherwise nothing.
-        '''
-        self.cursor.execute("""
-            SELECT COUNT(*)
-            FROM information_schema.tables
-            WHERE table_name = '{0}'
-            """.format(self.channel))
-        if self.cursor.fetchone()[0] == 1:
-            return True
     pass
 
     def create_pages(self):
         '''
         Creates particular table to store data from specified portal.
         '''
-        drop_table = "drop table if exists %s" % self.channel
-        self.cursor.execute(drop_table)
 
         if self.channel == 'youtube_pages':
 
-            self.cursor.execute('''create table if not exists youtube_pages(title text, id text, etag text, description text, customUrl text,
-                publishedAt text, defaultLanguage text, country text, contentDetails text, viewCount text,
-                commentCount text, subscriberCount text, videoCount text, keywords text, defaultTab text, analyticsAccountId text,
-                featuredChannelsTitle text, time_ text)''')
+            self.cursor.execute('''create table if not exists youtube_pages(title text, id VARCHAR(50), etag text, description text, customUrl text,
+                    publishedAt text, defaultLanguage text, country text, contentDetails text, viewCount text,
+                    commentCount text, subscriberCount text, videoCount text, keywords text, defaultTab text, trackingAnalyticsAccountId text,
+                    featuredChannelsTitle text, time_ text, PRIMARY KEY(id))''')
             self.cursor.execute("ALTER TABLE youtube_pages CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
         elif self.channel == 'facebook_pages':
 
-            self.cursor.execute('''create table if not exists facebook_pages(page_name longtext, id longtext, about longtext, description longtext, lang longtext,
-                         link longtext, talking_about_count longtext, phone longtext, website longtext,
-                         username longtext, products longtext, name_with_location_descriptor longtext,
-                         mission longtext, location longtext, impressum longtext, hours longtext, general_info longtext,
-                         founded longtext, fan_count longtext, display_subtext longtext, contact_address longtext,
-                         company_overview longtext,category longtext, time_ text)''')
+            self.cursor.execute('''create table if not exists facebook_pages(page_name longtext, id VARCHAR(50), about longtext, description longtext, lang longtext,
+                             link longtext, talking_about_count longtext, phone longtext, website longtext,
+                             username longtext, products longtext, name_with_location_descriptor longtext,
+                             mission longtext, location longtext, impressum longtext, hours longtext, general_info longtext,
+                             founded longtext, fan_count longtext, display_subtext longtext, contact_address longtext,
+                             company_overview longtext,category longtext, time_ text, PRIMARY KEY(id))''')
             self.cursor.execute("ALTER TABLE facebook_pages CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
         elif self.channel == 'twitter_pages':
 
             self.cursor.execute('''create table if not exists twitter_pages(page_name longtext, screen_name longtext,
-                         id longtext, verified text, description longtext, page_url longtext, location longtext, followers_count longtext,
-                          friends_count longtext, listed_count longtext,
-                           create_at longtext, favourites_count longtext, lang longtext,
-                           statuses_count longtext, time_ text)''')
+                             id VARCHAR(50), verified text, description longtext, page_url longtext, location longtext, followers_count longtext,
+                              friends_count longtext, listed_count longtext,
+                               create_at longtext, favourites_count longtext, lang longtext,
+                               statuses_count longtext, time_ text, PRIMARY KEY(id))''')
             self.cursor.execute("ALTER TABLE twitter_pages CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
+
         self.connection.commit()
+
     pass
 
     def check_item(self, id):
@@ -111,159 +90,151 @@ class data:
 
         '''
         if self.channel == 'youtube_pages':
-            list_to_insert =self.parameters_from_youtube(params)
+            diction_to_insert = self.parameters_from_youtube(params)
         elif self.channel == 'facebook_pages':
-            list_to_insert= self.parameters_from_facebook(params, lang)
+            diction_to_insert= self.parameters_from_facebook(params, lang)
         elif self.channel == 'twitter_pages':
-            list_to_insert = self.parameters_from_twitter(params)
+            diction_to_insert = self.parameters_from_twitter(params)
         else:
             raise Exception
-
-        for i in range(0,len(list_to_insert)):
-            if list_to_insert[i] is not None:
-                emotic = emoji.demojize(list_to_insert[i])
-                list_to_insert[i] = list_to_insert[i].replace(list_to_insert[i],emotic)
-                list_to_insert[i] = self.encode_to_string(list_to_insert[i])
-                pass
-            else:
-                pass
 
         if self.channel == 'youtube_pages':
-            query = self.make_query(list_to_insert, 'youtube_pages')
-            self.cursor.execute(query)
+            query = """INSERT INTO youtube_pages (title, id, etag, description, customUrl, publishedAt, defaultLanguage,
+            country, contentDetails, viewCount, commentCount, subscriberCount,videoCount, keywords, defaultTab, trackingAnalyticsAccountId,
+             featuredChannelsTitle, time_) VALUES( %(title)s, %(id)s, %(etag)s, %(description)s,
+             %(customUrl)s, %(publishedAt)s, %(defaultLanguage)s, %(country)s, %(contentDetails)s, %(viewCount)s,
+             %(commentCount)s, %(subscriberCount)s, %(videoCount)s, %(keywords)s, %(defaultTab)s, %(trackingAnalyticsAccountId)s,
+             %(featuredChannelsTitle)s, %(time_)s )"""
+            self.cursor.execute(query, diction_to_insert)
         elif self.channel == 'facebook_pages':
-            query = self.make_query(list_to_insert, 'facebook_pages')
-            self.cursor.execute(query)
+            query = """INSERT INTO facebook_pages (page_name, id, about, description, lang, link, talking_about_count,
+                phone, website, username, products, name_with_location_descriptor, mission, location, impressum,
+                hours, general_info, founded, fan_count, display_subtext, contact_address, company_overview, category, time_)
+                 VALUES( %(page_name)s, %(id)s, %(about)s, %(description)s,
+                 %(lang)s, %(link)s, %(talking_about_count)s, %(phone)s, %(website)s, %(username)s,
+                 %(products)s, %(name_with_location_descriptor)s, %(mission)s, %(location)s, %(impressum)s, %(hours)s,
+                 %(general_info)s, %(founded)s, %(fan_count)s, %(display_subtext)s, %(contact_address)s, %(company_overview)s,
+                  %(category)s, %(time_)s )"""
+            self.cursor.execute(query, diction_to_insert)
         elif self.channel == 'twitter_pages':
-            query = self.make_query(list_to_insert, 'twitter_pages')
-            self.cursor.execute(query)
+            query = """INSERT INTO twitter_pages (page_name, screen_name, id, verified, description, page_url, location, followers_count, friends_count,
+            listed_count, create_at, favourites_count, lang, statuses_count, time_)
+                 VALUES( %(page_name)s, %(screen_name)s, %(id)s, %(verified)s, %(description)s,
+                 %(page_url)s, %(location)s, %(followers_count)s, %(friends_count)s, %(listed_count)s, %(create_at)s,
+                 %(favourites_count)s, %(lang)s, %(statuses_count)s, %(time_)s )"""
+            self.cursor.execute(query, diction_to_insert)
         else:
             raise Exception
 
-        # self.connection_solr['face_pages'].add(list_to_insert)
+        # self.connection_solr['db'].add({'id':params['id']})
+        # doc = {
+        #     'id' : params['id'],
+        #     'page_name' : params['name']
+        # }
+        # import json
+        #
+        # doc = json.dumps(doc)
+        # print self.connection_solr['face_page'].
+        # print self.connection_solr['db'].add(doc)
         self.connection.commit()
-    pass
-
-    def encode_to_string(self, element):
-        '''encoding unicode variable and replacing encounter special sign
-
-        :param element: element to be encoded and checked
-        :return: element in a wanted way to be performed
-        '''
-
-        element = element.replace("\"", " ")
-        element = element.replace("\\", " ")
-        return element.encode("utf-8")
-    pass
-
-    def make_query(self, list, db_name):
-        '''creating a query to mysql db using list object
-        :param list: list of parameters to be inserted into database
-        :param db_name: table name in database
-
-        :return (string): request to database
-        '''
-
-        que = "INSERT INTO %s VALUES" % db_name
-        query = que + "(%s)" % ','.join(['\"{}\"'] * len(list))
-        query = query.format(*list)
-        return query
     pass
 
     def parameters_from_youtube(self, params):
         '''Retrieves all demanded parameters from youtube.
 
         :param params: responsed json from api
-        :return: list of parameters to be inserted into database
+        :return: dictionary of parameters to be inserted into database
         '''
         import json
 
-        list_to_insert = []
+        diction_to_insert = {}
         if params['snippet']['title'].find("'") == -1:
-            list_to_insert.append(params['snippet']['title'])
+            diction_to_insert['title'] = params['snippet']['title']
         else:
             name = params['snippet']['title'].replace("'", "''")
-            list_to_insert.append(name)
+            diction_to_insert['title'] = name
 
-        list_to_insert.append(params['id'])
-        list_to_insert.append(params['etag'])
+
+        diction_to_insert['id'] = params['id']
+        diction_to_insert['etag'] = params['etag']
 
         if 'description' in params['snippet'].keys():
-            list_to_insert.append(params['snippet']['description'])
+            diction_to_insert['description'] = params['snippet']['description']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['description'] = ""
 
         if 'customUrl' in params['snippet'].keys():
-            list_to_insert.append(params['snippet']['customUrl'])
+            diction_to_insert['customUrl'] = params['snippet']['customUrl']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['customUrl'] = ""
 
         if 'publishedAt' in params['snippet'].keys():
-            list_to_insert.append(params['snippet']['publishedAt'])
+            diction_to_insert['publishedAt'] = params['snippet']['publishedAt']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['publishedAt'] =""
 
         if 'defaultLanguage' in params['snippet'].keys():
-            list_to_insert.append(params['snippet']['defaultLanguage'])
+            diction_to_insert['defaultLanguage'] = params['snippet']['defaultLanguage']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['defaultLanguage'] =""
 
         if 'country' in params['snippet'].keys():
-            list_to_insert.append(params['snippet']['country'])
+            diction_to_insert['country'] = params['snippet']['country']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['country'] = ""
 
         if 'contentDetails' in params.keys():
             contentDetails = json.dumps(params['contentDetails'])
-            list_to_insert.append(contentDetails)
+            diction_to_insert['contentDetails'] = contentDetails
         else:
-            list_to_insert.append(None)
+            diction_to_insert['contentDetails'] = ""
 
         if 'viewCount' in params['statistics'].keys():
-            list_to_insert.append(params['statistics']['viewCount'])
+            diction_to_insert['viewCount'] = params['statistics']['viewCount']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['viewCount'] = ""
 
         if 'commentCount' in params['statistics'].keys():
-            list_to_insert.append(params['statistics']['commentCount'])
+            diction_to_insert['commentCount'] = params['statistics']['commentCount']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['commentCount'] = ""
 
         if 'subscriberCount' in params['statistics'].keys():
-            list_to_insert.append(params['statistics']['subscriberCount'])
+            diction_to_insert['subscriberCount'] = params['statistics']['subscriberCount']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['subscriberCount'] = ""
 
         if 'videoCount' in params['statistics'].keys():
-            list_to_insert.append(params['statistics']['videoCount'])
+            diction_to_insert['videoCount'] = params['statistics']['videoCount']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['videoCount'] = ""
 
         if 'keywords' in params['brandingSettings']['channel'].keys():
-            list_to_insert.append(params['brandingSettings']['channel']['keywords'])
+            diction_to_insert['keywords'] = params['brandingSettings']['channel']['keywords']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['keywords'] = ""
 
         if 'defaultTab' in params['brandingSettings']['channel'].keys():
-            list_to_insert.append(params['brandingSettings']['channel']['defaultTab'])
+            diction_to_insert['defaultTab'] = params['brandingSettings']['channel']['defaultTab']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['defaultTab'] = ""
 
         if 'trackingAnalyticsAccountId' in params['brandingSettings']['channel'].keys():
-            list_to_insert.append(params['brandingSettings']['channel']['trackingAnalyticsAccountId'])
+            diction_to_insert['trackingAnalyticsAccountId'] = params['brandingSettings']['channel']['trackingAnalyticsAccountId']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['trackingAnalyticsAccountId'] = ""
 
         if 'featuredChannelsTitle' in params['brandingSettings']['channel'].keys():
-            list_to_insert.append(params['brandingSettings']['channel']['featuredChannelsTitle'])
+            diction_to_insert['featuredChannelsTitle'] = params['brandingSettings']['channel'][
+                'featuredChannelsTitle']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['featuredChannelsTitle'] = ""
 
         time = str(datetime.datetime.now())
-        list_to_insert.append(time)
+        diction_to_insert['time_']=time
 
         print "time {} {}".format(time, params['id'])
-        return list_to_insert
+        return diction_to_insert
     pass
 
     def parameters_from_facebook(self, params, lang):
@@ -271,211 +242,211 @@ class data:
 
         :param params: responsed json from api
         :param lang: guessed language page
-        :return: list of parameters to be inserted into database
+        :return: dictionary of parameters to be inserted into database
         '''
         import json
 
-        list_to_insert = []
-
+        diction_to_insert={}
         if params['name'].find("'") == -1:
-            list_to_insert.append(params['name'])
+            diction_to_insert['page_name'] = params['name']
         else:
             name = params['name'].replace("'", "''")
-            list_to_insert.append(name)
+            diction_to_insert['page_name'] = name
 
-        list_to_insert.append(params['id'])
+        diction_to_insert['id'] = params['id']
 
         if 'about' in params.keys():
-            list_to_insert.append(params['about'])
+            diction_to_insert['about'] = params['about']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['about'] = ""
 
         if 'description' in params.keys():
-            list_to_insert.append(params['description'])
+            diction_to_insert['description'] = params['description']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['description'] = ""
 
-        list_to_insert.append(lang)
+        diction_to_insert['lang'] = lang
 
         if 'link' in params.keys():
-            list_to_insert.append(params['link'])
+            diction_to_insert['link'] = params['link']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['link'] = ""
 
         if 'talking_about_count' in params.keys():
-            list_to_insert.append(str(params['talking_about_count']))
+            diction_to_insert['talking_about_count'] = str(params['talking_about_count'])
         else:
-            list_to_insert.append(None)
+            diction_to_insert['talking_about_count'] = ""
 
         if 'phone' in params.keys():
-            list_to_insert.append(params['phone'])
+            diction_to_insert['phone'] = params['phone']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['phone'] =""
 
         if 'website' in params.keys():
-            list_to_insert.append(params['website'])
+            diction_to_insert['website'] = params['website']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['website']=""
 
         if 'username' in params.keys():
-            list_to_insert.append(params['username'])
+            diction_to_insert['username'] = params['username']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['username']=""
 
         if 'products' in params.keys():
-            list_to_insert.append(params['products'])
+            diction_to_insert['products'] = params['products']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['products'] = ""
 
         if 'name_with_location_descriptor' in params.keys():
-            list_to_insert.append(params['name_with_location_descriptor'])
+            diction_to_insert['name_with_location_descriptor'] = params['name_with_location_descriptor']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['name_with_location_descriptor'] =""
 
         if 'mission' in params.keys():
-            list_to_insert.append(params['mission'])
+            diction_to_insert['mission']=params['mission']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['mission'] = ""
 
         if 'location' in params.keys():
             location = json.dumps(params['location'])
-            list_to_insert.append(location)
+            diction_to_insert['location'] = location
         else:
-            list_to_insert.append(None)
+            diction_to_insert['location'] = ""
 
         if 'impressum' in params.keys():
-            list_to_insert.append(params['impressum'])
+            diction_to_insert['impressum'] = params['impressum']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['impressum'] = ""
 
         if 'hours' in params.keys():
             hours = json.dumps(params['hours'])
-            list_to_insert.append(hours)
+            diction_to_insert['hours'] = hours
         else:
-            list_to_insert.append(None)
+            diction_to_insert['hours'] = ""
 
         if 'general_info' in params.keys():
-            list_to_insert.append(params['general_info'])
+            diction_to_insert['general_info'] = params['general_info']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['general_info']=""
 
         if 'founded' in params.keys():
-            list_to_insert.append(params['founded'])
+            diction_to_insert['founded'] = params['founded']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['founded'] = ""
 
         if 'fan_count' in params.keys():
-            list_to_insert.append(str(params['fan_count']))
+            diction_to_insert['fan_count'] = str(params['fan_count'])
         else:
-            list_to_insert.append(None)
+            diction_to_insert['fan_count'] = ""
 
         if 'display_subtext' in params.keys():
-            list_to_insert.append(params['display_subtext'])
+            diction_to_insert['display_subtext'] = params['display_subtext']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['display_subtext'] =""
 
         if 'contact_address' in params.keys():
-            list_to_insert.append(params['contact_address'])
+            diction_to_insert['contact_address'] = params['contact_address']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['contact_address'] =""
 
         if 'company_overview' in params.keys():
-            list_to_insert.append(params['company_overview'])
+            diction_to_insert['company_overview'] = params['company_overview']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['company_overview'] = ""
 
         if 'category' in params.keys():
-            list_to_insert.append(params['category'])
+            diction_to_insert['category'] = params['category']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['category'] = ""
 
         time = str(datetime.datetime.now())
-        list_to_insert.append(time)
+        diction_to_insert['time_'] = time
 
         print "time {} {}".format(time, params['id'])
-        return list_to_insert
+        return diction_to_insert
     pass
 
     def parameters_from_twitter(self, params):
         '''Retrieves all demanded parameters from twitter.
 
         :param params: responsed json from api
-        :return: list of parameters to be inserted into database
+        :return: dictionary of parameters to be inserted into database
         '''
-        list_to_insert = []
+        diction_to_insert = {}
 
         if params['name'].find("'") == -1:
-            list_to_insert.append(params['name'])
+            diction_to_insert['page_name'] = params['name']
         else:
             name = params['name'].replace("'", "''")
-            list_to_insert.append(name)
+            diction_to_insert['page_name'] = name
 
         if params['screen_name'].find("'") == -1:
-            list_to_insert.append(params['screen_name'])
+            diction_to_insert['screen_name'] = params['screen_name']
         else:
             name = params['screen_name'].replace("'", "''")
-            list_to_insert.append(name)
+            diction_to_insert['screen_name'] = name
 
-        list_to_insert.append(str(params['id']))
+        diction_to_insert['id']= str(params['id'])
+
         if 'verified' in params.keys():
-            list_to_insert.append(str(params['verified']))
+            diction_to_insert['verified'] = str(params['verified'])
         else:
-            list_to_insert.append(None)
+            diction_to_insert['verified'] = ""
 
         if 'description' in params.keys():
-            list_to_insert.append(params['description'])
+            diction_to_insert['description'] = params['description']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['description'] = ""
 
         if 'status' in params.keys() and 'urls' in params['status'] and len(params['status']['urls']) is not 0:
-            list_to_insert.append(params['status']["urls"][0]['expanded_url'])
+            diction_to_insert['page_url'] = params['status']["urls"][0]['expanded_url']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['page_url'] =""
 
         if 'location' in params.keys():
-            list_to_insert.append(params['location'])
+            diction_to_insert['location'] = params['location']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['location'] = ""
 
         if 'followers_count' in params.keys():
-            list_to_insert.append(str(params['followers_count']))
+            diction_to_insert['followers_count'] = str(params['followers_count'])
         else:
-            list_to_insert.append(None)
+            diction_to_insert['followers_count'] = ""
 
         if 'friends_count' in params.keys():
-            list_to_insert.append(str(params['friends_count']))
+            diction_to_insert['friends_count'] = str(params['friends_count'])
         else:
-            list_to_insert.append(None)
+            diction_to_insert['friends_count'] = ""
 
         if 'listed_count' in params.keys():
-            list_to_insert.append(str(params['listed_count']))
+            diction_to_insert['listed_count'] = str(params['listed_count'])
         else:
-            list_to_insert.append(None)
+            diction_to_insert['listed_count'] =""
 
         if 'created_at' in params.keys():
-            list_to_insert.append(str(params['created_at']))
+            diction_to_insert['create_at'] = params['created_at']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['create_at'] = ""
 
         if 'favourites_count' in params.keys():
-            list_to_insert.append(str(params['favourites_count']))
+            diction_to_insert['favourites_count'] = params['favourites_count']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['favourites_count'] = ""
 
         if 'lang' in params.keys():
-            list_to_insert.append(params['lang'])
+            diction_to_insert['lang'] = params['lang']
         else:
-            list_to_insert.append(None)
+            diction_to_insert['lang'] = ""
 
         if 'statuses_count' in params.keys():
-            list_to_insert.append(str(params['statuses_count']))
+            diction_to_insert['statuses_count'] = str(params['statuses_count'])
         else:
-            list_to_insert.append(None)
+            diction_to_insert['statuses_count'] = ""
 
         time = str(datetime.datetime.now())
-        list_to_insert.append(time)
+        diction_to_insert['time_'] = time
 
         print "time {} {}".format(time,params['id'])
 
-        return list_to_insert
+        return diction_to_insert
     pass

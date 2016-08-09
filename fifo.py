@@ -25,17 +25,9 @@ class Fifo_queue:
         self.channel = channel + "_queue"
         self.cursor = self.connection.cursor()
 
-        table_create = "create table if not exists %s(id text, visited text)"%self.channel
-        drop_table = "drop table if exists %s"%self.channel
+        table_create = "create table if not exists %s(id VARCHAR(50), visited VARCHAR(10), UNIQUE KEY(id))"%self.channel
         if init is not None:
-            self.cursor.execute(drop_table)
             self.cursor.execute(table_create)
-        else:
-            self.cursor.execute("SHOW TABLES like \"{}\"".format(self.channel))
-            result = self.cursor.fetchall()
-            if len(result) is 0:
-                print "Have to create a table cause it doesn't exists!"
-                self.cursor.execute(table_create)
     pass
 
     def put(self, id):
@@ -44,9 +36,12 @@ class Fifo_queue:
         :param id: specific identifier of node
 
         '''
-        insert_into = "INSERT INTO {} VALUES(\"{}\", {})".format(str(self.channel),str(id),0)
-        self.cursor.execute(insert_into)
-        self.connection.commit()
+        insert_into = "INSERT INTO {} VALUES(\"{}\", NULL)".format(str(self.channel), id)
+        try:
+            self.cursor.execute(insert_into)
+            self.connection.commit()
+        except:
+            print "Already on queue"
     pass
 
     def get(self):
@@ -70,7 +65,7 @@ class Fifo_queue:
     pass
 
     def update(self):
-        update = """UPDATE {} SET visited="{}" WHERE visited=0 LIMIT 100""".format(self.channel, self.identifier)
+        update = """UPDATE {} SET visited="{}" WHERE visited is NULL LIMIT 100""".format(self.channel, self.identifier)
         self.cursor.execute(update)
         self.connection.commit()
     pass
