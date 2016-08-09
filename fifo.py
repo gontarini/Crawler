@@ -1,3 +1,5 @@
+from webbrowser import MacOSX
+
 import MySQLdb
 
 class Fifo_queue:
@@ -36,12 +38,11 @@ class Fifo_queue:
         :param id: specific identifier of node
 
         '''
-        insert_into = "INSERT INTO {} VALUES(\"{}\", NULL)".format(str(self.channel), id)
-        try:
-            self.cursor.execute(insert_into)
-            self.connection.commit()
-        except:
-            print "Already on queue"
+        insert_into = "INSERT IGNORE INTO {} (id, visited) VALUES(\"{}\", NULL)".format(str(self.channel), id)
+
+        self.cursor.execute(insert_into)
+        self.connection.commit()
+
     pass
 
     def get(self):
