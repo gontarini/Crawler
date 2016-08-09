@@ -54,7 +54,6 @@ class Fifo_queue:
 
         if len(self.id_from_queue) is not 0:
             self.connection.commit()
-            self.update()
         else:
             self.update()
             self.cursor.execute(select_from)
