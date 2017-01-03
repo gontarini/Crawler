@@ -247,7 +247,7 @@ class BFS_retrieving:
             check = self.manage_data.check_item(id)
             if check is not None:
                 print "I've been here"
-                break
+                continue
             else:
                 self.fifo.put(id)
 
